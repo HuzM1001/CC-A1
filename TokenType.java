@@ -4,6 +4,7 @@ public enum TokenType {
     FLOAT_LITERAL,
     KEYWORD,
     BOOLEAN_LITERAL,
+    OPERATOR,
     RELATIONAL_OPERATOR,
     SINGLE_LINE_COMMENT,
     ERROR

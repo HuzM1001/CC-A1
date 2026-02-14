@@ -17,6 +17,11 @@ public class ManualScanner {
             "true", "false"
     );
 
+    //operators simple wale
+    private static final Set<Character> OPERATORS = Set.of(
+            '+', '-', '*', '/', '=', '<', '>'
+    );
+
     public ManualScanner(String input) {
         this.input = input;
     }
@@ -42,6 +47,12 @@ public class ManualScanner {
             // integer literals
             if (Character.isDigit(c)) {
                 tokens.add(scanNumber(startLine, startColumn));
+                continue;
+            }
+
+            // operators simple
+            if (OPERATORS.contains(c)) {
+                tokens.add(scanOperator(startLine, startColumn));
                 continue;
             }
 
@@ -87,7 +98,7 @@ public class ManualScanner {
         return new Token(TokenType.IDENTIFIER, word, startLine, startColumn);
     }
 
-//NUMBER LOGIC NEW STUFF YAY
+    //NUMBER LOGIC NEW STUFF YAY
     private Token scanNumber(int startLine, int startColumn) {
         StringBuilder number = new StringBuilder();
 
@@ -103,7 +114,18 @@ public class ManualScanner {
         );
     }
 
-//helpers
+    //operator logic thori si
+    private Token scanOperator(int startLine, int startColumn) {
+        char op = advance();
+        return new Token(
+                TokenType.OPERATOR,
+                String.valueOf(op),
+                startLine,
+                startColumn
+        );
+    }
+
+    //helpers
     private boolean isAtEnd() {
         return index >= input.length();
     }
@@ -137,7 +159,7 @@ public class ManualScanner {
     }
 
     public static void main(String[] args) {
-        String testInput = "start Count 123 true 45\nfinish";
+        String testInput = "start Count = 5 + 3\nfinish";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
