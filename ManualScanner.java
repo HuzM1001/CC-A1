@@ -17,9 +17,6 @@ public class ManualScanner {
             "true", "false"
     );
 
-
-
-
     public ManualScanner(String input) {
         this.input = input;
     }
@@ -36,9 +33,15 @@ public class ManualScanner {
             int startColumn = column;
             char c = peek();
 
-            // identifiers - keywords and bools now detected
+            // identifiers - keywords and bools
             if (Character.isUpperCase(c)) {
                 tokens.add(scanWord(startLine, startColumn));
+                continue;
+            }
+
+            // integer literals
+            if (Character.isDigit(c)) {
+                tokens.add(scanNumber(startLine, startColumn));
                 continue;
             }
 
@@ -54,7 +57,6 @@ public class ManualScanner {
 
         return tokens;
     }
-
 
     private Token scanWord(int startLine, int startColumn) {
         StringBuilder lexeme = new StringBuilder();
@@ -85,8 +87,23 @@ public class ManualScanner {
         return new Token(TokenType.IDENTIFIER, word, startLine, startColumn);
     }
 
+//NUMBER LOGIC NEW STUFF YAY
+    private Token scanNumber(int startLine, int startColumn) {
+        StringBuilder number = new StringBuilder();
 
-    //helpers
+        while (!isAtEnd() && Character.isDigit(peek())) {
+            number.append(advance());
+        }
+
+        return new Token(
+                TokenType.INTEGER_LITERAL,
+                number.toString(),
+                startLine,
+                startColumn
+        );
+    }
+
+//helpers
     private boolean isAtEnd() {
         return index >= input.length();
     }
@@ -119,13 +136,8 @@ public class ManualScanner {
         }
     }
 
-
-    
-
-
-    
     public static void main(String[] args) {
-        String testInput = "start Count true false LoopVar\nfinish";
+        String testInput = "start Count 123 true 45\nfinish";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
