@@ -6,6 +6,20 @@ public class ManualScanner {
     private int line = 1;
     private int column = 1;
 
+    //keywords
+    private static final Set<String> KEYWORDS = Set.of(
+            "start", "finish", "loop", "condition", "declare",
+            "output", "input", "function", "return",
+            "break", "continue", "else"
+    );
+
+    private static final Set<String> BOOLEAN_LITERALS = Set.of(
+            "true", "false"
+    );
+
+
+
+
     public ManualScanner(String input) {
         this.input = input;
     }
@@ -22,13 +36,13 @@ public class ManualScanner {
             int startColumn = column;
             char c = peek();
 
-            //start with upercase letter means identifier
+            // identifiers - keywords and bools now detected
             if (Character.isUpperCase(c)) {
-                tokens.add(scanIdentifier(startLine, startColumn));
+                tokens.add(scanWord(startLine, startColumn));
                 continue;
             }
 
-            //throwing error for unexpected characters
+            //unexpected character pe phat na jaye
             tokens.add(new Token(
                     TokenType.ERROR,
                     "Unexpected character: " + c,
@@ -41,7 +55,38 @@ public class ManualScanner {
         return tokens;
     }
 
-//HELPERS
+
+    private Token scanWord(int startLine, int startColumn) {
+        StringBuilder lexeme = new StringBuilder();
+
+        lexeme.append(advance());
+
+        while (!isAtEnd()) {
+            char c = peek();
+            if (Character.isLowerCase(c) || Character.isDigit(c) || c == '_') {
+                lexeme.append(advance());
+            } else {
+                break;
+            }
+        }
+
+        String word = lexeme.toString();
+
+        // Check keyword
+        if (KEYWORDS.contains(word)) {
+            return new Token(TokenType.KEYWORD, word, startLine, startColumn);
+        }
+
+        // Check bool
+        if (BOOLEAN_LITERALS.contains(word)) {
+            return new Token(TokenType.BOOLEAN_LITERAL, word, startLine, startColumn);
+        }
+
+        return new Token(TokenType.IDENTIFIER, word, startLine, startColumn);
+    }
+
+
+    //helpers
     private boolean isAtEnd() {
         return index >= input.length();
     }
@@ -73,35 +118,14 @@ public class ManualScanner {
             }
         }
     }
-//HELPERS END
-
-
-//SCANNING
-
-    private Token scanIdentifier(int startLine, int startColumn) {
-        StringBuilder lexeme = new StringBuilder();
-
-        lexeme.append(advance());
-
-        while (!isAtEnd()) {
-            char c = peek();
-            if (Character.isLowerCase(c) || Character.isDigit(c) || c == '_') {
-                lexeme.append(advance());
-            } else {
-                break;
-            }
-        }
-
-        return new Token(TokenType.IDENTIFIER, lexeme.toString(), startLine, startColumn);
-    }
 
 
     
 
 
-
+    
     public static void main(String[] args) {
-        String testInput = "Hello World\nTest123 _invalid";
+        String testInput = "start Count true false LoopVar\nfinish";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
