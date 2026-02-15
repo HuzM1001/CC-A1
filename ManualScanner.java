@@ -6,21 +6,18 @@ public class ManualScanner {
     private int line = 1;
     private int column = 1;
 
-    //keywords
+    // keywords
     private static final Set<String> KEYWORDS = Set.of(
             "start", "finish", "loop", "condition", "declare",
             "output", "input", "function", "return",
-            "break", "continue", "else"
-    );
+            "break", "continue", "else");
 
     private static final Set<String> BOOLEAN_LITERALS = Set.of(
-            "true", "false"
-    );
+            "true", "false");
 
-    //operators simple wale
+    // operators simple wale
     private static final Set<Character> OPERATORS = Set.of(
-            '+', '-', '*', '/', '=', '<', '>', '!'
-    );
+            '+', '-', '*', '/', '=', '<', '>', '!');
 
     public ManualScanner(String input) {
         this.input = input;
@@ -32,7 +29,8 @@ public class ManualScanner {
         while (!isAtEnd()) {
             skipWhitespace();
 
-            if (isAtEnd()) break;
+            if (isAtEnd())
+                break;
 
             int startLine = line;
             int startColumn = column;
@@ -62,13 +60,12 @@ public class ManualScanner {
                 continue;
             }
 
-            //unexpected character pe phat na jaye
+            // unexpected character pe phat na jaye
             tokens.add(new Token(
                     TokenType.ERROR,
                     "Unexpected character: " + c,
                     startLine,
-                    startColumn
-            ));
+                    startColumn));
             advance();
         }
 
@@ -102,23 +99,52 @@ public class ManualScanner {
         return new Token(TokenType.IDENTIFIER, word, startLine, startColumn);
     }
 
-    //NUMBER LOGIC NEW STUFF YAY
+    // NUMBER LOGIC NEW STUFF YAY
+    //changed it up to handle . for floats
     private Token scanNumber(int startLine, int startColumn) {
+
         StringBuilder number = new StringBuilder();
 
+        // integer part
         while (!isAtEnd() && Character.isDigit(peek())) {
             number.append(advance());
         }
 
+        // check for decimal part
+        if (!isAtEnd() && peek() == '.') {
+
+            number.append(advance()); // consume dot
+
+            // agar dot ke baad digit nahi hai to error
+            if (isAtEnd() || !Character.isDigit(peek())) {
+                return new Token(
+                        TokenType.ERROR,
+                        number.toString(),
+                        startLine,
+                        startColumn);
+            }
+
+            // decimal digits
+            while (!isAtEnd() && Character.isDigit(peek())) {
+                number.append(advance());
+            }
+
+            return new Token(
+                    TokenType.FLOAT_LITERAL,
+                    number.toString(),
+                    startLine,
+                    startColumn);
+        }
+
+        //else basic int
         return new Token(
                 TokenType.INTEGER_LITERAL,
                 number.toString(),
                 startLine,
-                startColumn
-        );
+                startColumn);
     }
 
-    //operator logic thori si advanced now
+    // operator logic thori si advanced now
     private Token scanOperator(int startLine, int startColumn) {
 
         char current = advance();
@@ -127,9 +153,9 @@ public class ManualScanner {
             char next = peek();
 
             if ((current == '=' && next == '=') ||
-                (current == '!' && next == '=') ||
-                (current == '<' && next == '=') ||
-                (current == '>' && next == '=')) {
+                    (current == '!' && next == '=') ||
+                    (current == '<' && next == '=') ||
+                    (current == '>' && next == '=')) {
 
                 advance();
 
@@ -137,8 +163,7 @@ public class ManualScanner {
                         TokenType.RELATIONAL_OPERATOR,
                         "" + current + next,
                         startLine,
-                        startColumn
-                );
+                        startColumn);
             }
         }
 
@@ -147,19 +172,17 @@ public class ManualScanner {
                     TokenType.RELATIONAL_OPERATOR,
                     String.valueOf(current),
                     startLine,
-                    startColumn
-            );
+                    startColumn);
         }
 
         return new Token(
                 TokenType.OPERATOR,
                 String.valueOf(current),
                 startLine,
-                startColumn
-        );
+                startColumn);
     }
 
-    //comment logic simple sa
+    // comment logic simple sa
     private Token scanComment(int startLine, int startColumn) {
 
         advance(); // first /
@@ -175,11 +198,10 @@ public class ManualScanner {
                 TokenType.SINGLE_LINE_COMMENT,
                 comment.toString(),
                 startLine,
-                startColumn
-        );
+                startColumn);
     }
 
-    //helpers
+    // helpers
     private boolean isAtEnd() {
         return index >= input.length();
     }
@@ -189,7 +211,8 @@ public class ManualScanner {
     }
 
     private char peekNext() {
-        if (index + 1 >= input.length()) return '\0';
+        if (index + 1 >= input.length())
+            return '\0';
         return input.charAt(index + 1);
     }
 
@@ -218,7 +241,7 @@ public class ManualScanner {
     }
 
     public static void main(String[] args) {
-        String testInput = "Count = 5 // this is a comment\nstart";
+        String testInput = "Count = 5 // this is a comment\nstart\n10.5\n0.001\n.01\n10.";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
