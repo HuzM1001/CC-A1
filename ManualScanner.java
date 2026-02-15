@@ -17,7 +17,7 @@ public class ManualScanner {
 
     // operators simple wale
     private static final Set<Character> OPERATORS = Set.of(
-            '+', '-', '*', '/', '=', '<', '>', '!');
+            '+', '-', '*', '/', '=', '<', '>', '!', '&', '|');
 
     public ManualScanner(String input) {
         this.input = input;
@@ -100,7 +100,7 @@ public class ManualScanner {
     }
 
     // NUMBER LOGIC NEW STUFF YAY
-    //changed it up to handle . for floats
+    // changed it up to handle . for floats
     private Token scanNumber(int startLine, int startColumn) {
 
         StringBuilder number = new StringBuilder();
@@ -136,7 +136,7 @@ public class ManualScanner {
                     startColumn);
         }
 
-        //else basic int
+        // else basic int
         return new Token(
                 TokenType.INTEGER_LITERAL,
                 number.toString(),
@@ -144,7 +144,7 @@ public class ManualScanner {
                 startColumn);
     }
 
-    // operator logic thori si advanced now
+    // operator logic thori si advanced now, checks for && and || gave me a stroke
     private Token scanOperator(int startLine, int startColumn) {
 
         char current = advance();
@@ -152,10 +152,24 @@ public class ManualScanner {
         if (!isAtEnd()) {
             char next = peek();
 
+            // relational double operators
             if ((current == '=' && next == '=') ||
                     (current == '!' && next == '=') ||
                     (current == '<' && next == '=') ||
                     (current == '>' && next == '=')) {
+
+                advance();
+
+                return new Token(
+                        TokenType.RELATIONAL_OPERATOR,
+                        "" + current + next,
+                        startLine,
+                        startColumn);
+            }
+
+            // logical operators
+            if ((current == '&' && next == '&') ||
+                    (current == '|' && next == '|')) {
 
                 advance();
 
@@ -241,7 +255,7 @@ public class ManualScanner {
     }
 
     public static void main(String[] args) {
-        String testInput = "Count = 5 // this is a comment\nstart\n10.5\n0.001\n.01\n10.";
+        String testInput = "Count = 5 // this is a comment\nstart\n10.5\n0.001\n.01\n10.\na > 5 && b < 10\n";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
