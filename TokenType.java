@@ -7,5 +7,6 @@ public enum TokenType {
     OPERATOR,
     RELATIONAL_OPERATOR,
     SINGLE_LINE_COMMENT,
-    ERROR
+    ERROR,
+    DELIMITER
 }

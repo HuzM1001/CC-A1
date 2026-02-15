@@ -19,6 +19,10 @@ public class ManualScanner {
     private static final Set<Character> OPERATORS = Set.of(
             '+', '-', '*', '/', '=', '<', '>', '!', '&', '|');
 
+    // delimiters simple wale
+    private static final Set<Character> DELIMITERS = Set.of(
+            '(', ')', '{', '}', ';', ',');
+
     public ManualScanner(String input) {
         this.input = input;
     }
@@ -51,6 +55,12 @@ public class ManualScanner {
             // comment logic pehle check karo warna // ko operator samjhega
             if (c == '/' && peekNext() == '/') {
                 tokens.add(scanComment(startLine, startColumn));
+                continue;
+            }
+
+            // delimiters simple wale
+            if (DELIMITERS.contains(c)) {
+                tokens.add(scanDelimiter(startLine, startColumn));
                 continue;
             }
 
@@ -211,6 +221,18 @@ public class ManualScanner {
         return new Token(
                 TokenType.SINGLE_LINE_COMMENT,
                 comment.toString(),
+                startLine,
+                startColumn);
+    }
+
+    // delimiter logic simple sa
+    private Token scanDelimiter(int startLine, int startColumn) {
+
+        char d = advance();
+
+        return new Token(
+                TokenType.DELIMITER,
+                String.valueOf(d),
                 startLine,
                 startColumn);
     }
