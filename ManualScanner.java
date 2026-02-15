@@ -19,7 +19,7 @@ public class ManualScanner {
 
     //operators simple wale
     private static final Set<Character> OPERATORS = Set.of(
-            '+', '-', '*', '/', '=', '<', '>'
+            '+', '-', '*', '/', '=', '<', '>', '!'
     );
 
     public ManualScanner(String input) {
@@ -50,7 +50,7 @@ public class ManualScanner {
                 continue;
             }
 
-            // operators simple
+            // operators simple + relational
             if (OPERATORS.contains(c)) {
                 tokens.add(scanOperator(startLine, startColumn));
                 continue;
@@ -85,12 +85,10 @@ public class ManualScanner {
 
         String word = lexeme.toString();
 
-        // Check keyword
         if (KEYWORDS.contains(word)) {
             return new Token(TokenType.KEYWORD, word, startLine, startColumn);
         }
 
-        // Check bool
         if (BOOLEAN_LITERALS.contains(word)) {
             return new Token(TokenType.BOOLEAN_LITERAL, word, startLine, startColumn);
         }
@@ -114,12 +112,46 @@ public class ManualScanner {
         );
     }
 
-    //operator logic thori si
+    //operator logic thori si advanced now, uses look to next char for stuff like <= waghera yk cool cool and 
+    //necessary coz ofc it is why am i yapping sm 
     private Token scanOperator(int startLine, int startColumn) {
-        char op = advance();
+
+        char current = advance();
+
+        //check double operators
+        if (!isAtEnd()) {
+            char next = peek();
+
+            if ((current == '=' && next == '=') ||
+                (current == '!' && next == '=') ||
+                (current == '<' && next == '=') ||
+                (current == '>' && next == '=')) {
+
+                advance(); // consume second char
+
+                return new Token(
+                        TokenType.RELATIONAL_OPERATOR,
+                        "" + current + next,
+                        startLine,
+                        startColumn
+                );
+            }
+        }
+
+        //single char relational
+        if (current == '<' || current == '>') {
+            return new Token(
+                    TokenType.RELATIONAL_OPERATOR,
+                    String.valueOf(current),
+                    startLine,
+                    startColumn
+            );
+        }
+
+        //normal operator
         return new Token(
                 TokenType.OPERATOR,
-                String.valueOf(op),
+                String.valueOf(current),
                 startLine,
                 startColumn
         );
@@ -159,7 +191,7 @@ public class ManualScanner {
     }
 
     public static void main(String[] args) {
-        String testInput = "start Count = 5 + 3\nfinish";
+        String testInput = "Count == 5\nCount != 3\nCount <= 10\nCount >= 2";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
