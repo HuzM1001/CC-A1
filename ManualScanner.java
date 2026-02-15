@@ -50,6 +50,12 @@ public class ManualScanner {
                 continue;
             }
 
+            // comment logic pehle check karo warna // ko operator samjhega
+            if (c == '/' && peekNext() == '/') {
+                tokens.add(scanComment(startLine, startColumn));
+                continue;
+            }
+
             // operators simple + relational
             if (OPERATORS.contains(c)) {
                 tokens.add(scanOperator(startLine, startColumn));
@@ -112,13 +118,11 @@ public class ManualScanner {
         );
     }
 
-    //operator logic thori si advanced now, uses look to next char for stuff like <= waghera yk cool cool and 
-    //necessary coz ofc it is why am i yapping sm 
+    //operator logic thori si advanced now
     private Token scanOperator(int startLine, int startColumn) {
 
         char current = advance();
 
-        //check double operators
         if (!isAtEnd()) {
             char next = peek();
 
@@ -127,7 +131,7 @@ public class ManualScanner {
                 (current == '<' && next == '=') ||
                 (current == '>' && next == '=')) {
 
-                advance(); // consume second char
+                advance();
 
                 return new Token(
                         TokenType.RELATIONAL_OPERATOR,
@@ -138,7 +142,6 @@ public class ManualScanner {
             }
         }
 
-        //single char relational
         if (current == '<' || current == '>') {
             return new Token(
                     TokenType.RELATIONAL_OPERATOR,
@@ -148,10 +151,29 @@ public class ManualScanner {
             );
         }
 
-        //normal operator
         return new Token(
                 TokenType.OPERATOR,
                 String.valueOf(current),
+                startLine,
+                startColumn
+        );
+    }
+
+    //comment logic simple sa
+    private Token scanComment(int startLine, int startColumn) {
+
+        advance(); // first /
+        advance(); // second /
+
+        StringBuilder comment = new StringBuilder();
+
+        while (!isAtEnd() && peek() != '\n') {
+            comment.append(advance());
+        }
+
+        return new Token(
+                TokenType.SINGLE_LINE_COMMENT,
+                comment.toString(),
                 startLine,
                 startColumn
         );
@@ -164,6 +186,11 @@ public class ManualScanner {
 
     private char peek() {
         return input.charAt(index);
+    }
+
+    private char peekNext() {
+        if (index + 1 >= input.length()) return '\0';
+        return input.charAt(index + 1);
     }
 
     private char advance() {
@@ -191,7 +218,7 @@ public class ManualScanner {
     }
 
     public static void main(String[] args) {
-        String testInput = "Count == 5\nCount != 3\nCount <= 10\nCount >= 2";
+        String testInput = "Count = 5 // this is a comment\nstart";
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 
