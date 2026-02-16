@@ -52,6 +52,18 @@ public class ManualScanner {
                 continue;
             }
 
+            // string literal logic new stuff
+            if (c == '"') {
+                tokens.add(scanString(startLine, startColumn));
+                continue;
+            }
+
+            // char literal logic new stuff
+            if (c == '\'') {
+                tokens.add(scanChar(startLine, startColumn));
+                continue;
+            }
+
             // comment logic pehle check karo warna // ko operator samjhega
             if (c == '/' && peekNext() == '/') {
                 tokens.add(scanComment(startLine, startColumn));
@@ -115,17 +127,14 @@ public class ManualScanner {
 
         StringBuilder number = new StringBuilder();
 
-        // integer part
         while (!isAtEnd() && Character.isDigit(peek())) {
             number.append(advance());
         }
 
-        // check for decimal part
         if (!isAtEnd() && peek() == '.') {
 
-            number.append(advance()); // consume dot
+            number.append(advance());
 
-            // agar dot ke baad digit nahi hai to error
             if (isAtEnd() || !Character.isDigit(peek())) {
                 return new Token(
                         TokenType.ERROR,
@@ -134,7 +143,6 @@ public class ManualScanner {
                         startColumn);
             }
 
-            // decimal digits
             while (!isAtEnd() && Character.isDigit(peek())) {
                 number.append(advance());
             }
@@ -146,10 +154,78 @@ public class ManualScanner {
                     startColumn);
         }
 
-        // else basic int
         return new Token(
                 TokenType.INTEGER_LITERAL,
                 number.toString(),
+                startLine,
+                startColumn);
+    }
+
+    // string literal logic simple hi hai
+    private Token scanString(int startLine, int startColumn) {
+
+        advance(); // consume opening "
+
+        StringBuilder value = new StringBuilder();
+
+        while (!isAtEnd() && peek() != '"') {
+
+            if (peek() == '\n') {
+                return new Token(
+                        TokenType.ERROR,
+                        "Unterminated string",
+                        startLine,
+                        startColumn);
+            }
+
+            value.append(advance());
+        }
+
+        if (isAtEnd()) {
+            return new Token(
+                    TokenType.ERROR,
+                    "Unterminated string",
+                    startLine,
+                    startColumn);
+        }
+
+        advance(); // consume closing "
+
+        return new Token(
+                TokenType.STRING_LITERAL,
+                value.toString(),
+                startLine,
+                startColumn);
+    }
+
+    // char literal logic thora strict hai
+    private Token scanChar(int startLine, int startColumn) {
+
+        advance(); // consume opening '
+
+        if (isAtEnd() || peek() == '\n') {
+            return new Token(
+                    TokenType.ERROR,
+                    "Invalid char literal",
+                    startLine,
+                    startColumn);
+        }
+
+        char value = advance();
+
+        if (isAtEnd() || peek() != '\'') {
+            return new Token(
+                    TokenType.ERROR,
+                    "Invalid char literal",
+                    startLine,
+                    startColumn);
+        }
+
+        advance(); // consume closing '
+
+        return new Token(
+                TokenType.CHAR_LITERAL,
+                String.valueOf(value),
                 startLine,
                 startColumn);
     }
@@ -162,7 +238,6 @@ public class ManualScanner {
         if (!isAtEnd()) {
             char next = peek();
 
-            // relational double operators
             if ((current == '=' && next == '=') ||
                     (current == '!' && next == '=') ||
                     (current == '<' && next == '=') ||
@@ -177,7 +252,6 @@ public class ManualScanner {
                         startColumn);
             }
 
-            // logical operators
             if ((current == '&' && next == '&') ||
                     (current == '|' && next == '|')) {
 
@@ -209,8 +283,8 @@ public class ManualScanner {
     // comment logic simple sa
     private Token scanComment(int startLine, int startColumn) {
 
-        advance(); // first /
-        advance(); // second /
+        advance();
+        advance();
 
         StringBuilder comment = new StringBuilder();
 
@@ -277,7 +351,63 @@ public class ManualScanner {
     }
 
     public static void main(String[] args) {
-        String testInput = "Count = 5 // this is a comment\nstart\n10.5\n0.001\n.01\n10.\na > 5 && b < 10\n";
+
+        String testInput =
+                // identifiers + keywords
+                "Count = 10;\n" +
+                        "start finish loop condition declare output input function return break continue else\n" +
+
+                        // boolean literals
+                        "Flag = true;\n" +
+                        "OtherFlag = false;\n" +
+
+                        // integers and floats
+                        "IntValue = 123;\n" +
+                        "FloatValue = 45.67;\n" +
+                        "ZeroFloat = 0.001;\n" +
+
+                        // invalid numbers
+                        ".25\n" +
+                        "10.\n" +
+
+                        // string literals
+                        "Message = \"Hello World\";\n" +
+                        "EmptyString = \"\";\n" +
+
+                        // unterminated string
+                        "\"This string never ends\n" +
+
+                        // char literals
+                        "Letter = 'A';\n" +
+                        "DigitChar = '5';\n" +
+
+                        // invalid char literals
+                        "'AB'\n" +
+                        "'\n" +
+
+                        // operators
+                        "A + B - C * D / E;\n" +
+                        "A == B;\n" +
+                        "A != B;\n" +
+                        "A <= B;\n" +
+                        "A >= B;\n" +
+                        "A < B;\n" +
+                        "A > B;\n" +
+                        "A && B;\n" +
+                        "A || B;\n" +
+
+                        // delimiters
+                        "Function Add(A, B) {\n" +
+                        "   Return A + B;\n" +
+                        "}\n" +
+
+                        // comment
+                        "// this is a single line comment\n" +
+
+                        // lowercase invalid identifiers
+                        "invalidIdentifier\n" +
+                        "anotherOne\n";
+
         ManualScanner scanner = new ManualScanner(testInput);
         List<Token> tokens = scanner.scan();
 

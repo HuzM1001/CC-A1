@@ -8,5 +8,7 @@ public enum TokenType {
     RELATIONAL_OPERATOR,
     SINGLE_LINE_COMMENT,
     ERROR,
-    DELIMITER
+    DELIMITER,
+    STRING_LITERAL,
+    CHAR_LITERAL
 }
