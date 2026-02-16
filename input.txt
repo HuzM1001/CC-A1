@@ -1,0 +1,7 @@
+Count = 10;
+start finish
+Flag = true;
+Value = 45.67;
+Message = "Hello";
+Letter = 'A';
+A == B;
